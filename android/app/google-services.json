@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "342563888118",
+    "project_id": "go-shop-452f1",
+    "storage_bucket": "go-shop-452f1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:342563888118:android:0f735fe42d98da140dc5d7",
+        "android_client_info": {
+          "package_name": "com.example.library_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlNBmk3ktGO_erCRVqY5iJBs9NVw6V1iA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
