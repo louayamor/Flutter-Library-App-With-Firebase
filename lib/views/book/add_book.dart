@@ -4,6 +4,7 @@ import '../../controllers/book_controller.dart';
 import '../../controllers/category_controller.dart';
 import '../../models/book.dart';
 import '../../models/category.dart';
+import '../../theme.dart';
 
 class AddBookScreen extends StatefulWidget {
   static const String routeName = "/add_book";
@@ -25,6 +26,17 @@ class _AddBookScreenState extends State<AddBookScreen> {
   String? selectedCategoryId;
   bool isAvailable = true;
 
+Widget _sectionTitle(String text) {
+  return Text(
+    text,
+    style: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.bold,
+      color: AppTheme.primary,
+    ),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     final bookController = Provider.of<BookController>(context, listen: false);
@@ -32,31 +44,34 @@ class _AddBookScreenState extends State<AddBookScreen> {
     final categories = categoryController.categories;
 
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text("Add New Book"),
-        backgroundColor: Colors.blue.shade700,
+        backgroundColor: AppTheme.primary,
         centerTitle: true,
-        elevation: 3,
+        elevation: 2,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _pageTitle(),
-
+              Text(
+                "Create a New Book",
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryDark,
+                ),
+              ),
               const SizedBox(height: 20),
-
-              _buildFormCard(categories),
-
-              const SizedBox(height: 100),
+              _buildFormCard(categories, bookController),
+              const SizedBox(height: 80),
             ],
           ),
         ),
       ),
-
-      // floating bottom button
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -64,15 +79,14 @@ class _AddBookScreenState extends State<AddBookScreen> {
             height: 55,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade700,
+                backgroundColor: AppTheme.primary,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16)),
               ),
               onPressed: _submit(bookController),
               child: const Text(
                 "Add Book",
-                style: TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
             ),
           ),
@@ -81,38 +95,11 @@ class _AddBookScreenState extends State<AddBookScreen> {
     );
   }
 
-  // --------------------------
-  // MARK: UI COMPONENTS
-  // --------------------------
-
-  Widget _pageTitle() {
-    return Text(
-      "Create a New Book",
-      style: TextStyle(
-        fontSize: 26,
-        fontWeight: FontWeight.bold,
-        color: Colors.blue.shade900,
-      ),
-    );
-  }
-
-  Widget _sectionTitle(String text) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w700,
-        color: Colors.blue.shade700,
-      ),
-    );
-  }
-
-  Widget _buildFormCard(List<Category> categories) {
+  Widget _buildFormCard(List<Category> categories, BookController controller) {
     return Card(
+      color: AppTheme.surface,
       elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -122,66 +109,39 @@ class _AddBookScreenState extends State<AddBookScreen> {
             children: [
               _sectionTitle("Basic Information"),
               const SizedBox(height: 12),
-
-              _textField(
-                label: "Title",
-                validator: _required("Please enter the title"),
-                onSaved: (v) => title = v!.trim(),
-              ),
+              _textField("Title", _required("Please enter the title"),
+                  (v) => title = v!.trim()),
               const SizedBox(height: 16),
-
-              _textField(
-                label: "Author",
-                validator: _required("Please enter the author"),
-                onSaved: (v) => author = v!.trim(),
-              ),
+              _textField("Author", _required("Please enter the author"),
+                  (v) => author = v!.trim()),
               const SizedBox(height: 25),
-
               _sectionTitle("Details"),
               const SizedBox(height: 12),
-
-              _textField(
-                label: "Description",
-                validator: _required("Please enter the description"),
-                onSaved: (v) => description = v!.trim(),
-                maxLines: 4,
-              ),
+              _textField("Description", _required("Please enter description"),
+                  (v) => description = v!.trim(),
+                  maxLines: 4),
               const SizedBox(height: 16),
-
-              _textField(
-                label: "Rating (0–5)",
-                inputType: TextInputType.number,
-                validator: (v) {
-                  if (v == null || v.isEmpty) return "Enter rating";
-                  final parsed = double.tryParse(v);
-                  if (parsed == null || parsed < 0 || parsed > 5) {
-                    return "Enter a valid rating (0–5)";
-                  }
-                  return null;
-                },
-                onSaved: (v) => rating = double.tryParse(v!),
-              ),
+              _textField("Rating (0–5)", (v) {
+                if (v == null || v.isEmpty) return "Enter rating";
+                final parsed = double.tryParse(v);
+                if (parsed == null || parsed < 0 || parsed > 5) {
+                  return "Enter a valid rating (0–5)";
+                }
+                return null;
+              }, (v) => rating = double.tryParse(v!),
+                  inputType: TextInputType.number),
               const SizedBox(height: 25),
-
               _sectionTitle("Category & Availability"),
               const SizedBox(height: 12),
-
               _categoryDropdown(categories),
               const SizedBox(height: 20),
-
               _availabilitySwitch(),
               const SizedBox(height: 25),
-
               _sectionTitle("Image"),
               const SizedBox(height: 10),
-
-              _textField(
-                label: "Image URL (optional)",
-                validator: (_) => null,
-                onSaved: (v) => imageUrl = v!.trim(),
-              ),
+              _textField("Image URL (optional)", (_) => null,
+                  (v) => imageUrl = v!.trim()),
               const SizedBox(height: 16),
-
               if (imageUrl != null && imageUrl!.isNotEmpty)
                 _imagePreview(),
             ],
@@ -191,14 +151,9 @@ class _AddBookScreenState extends State<AddBookScreen> {
     );
   }
 
-  // text field builder
-  Widget _textField({
-    required String label,
-    required FormFieldValidator<String> validator,
-    required FormFieldSetter<String> onSaved,
-    int maxLines = 1,
-    TextInputType inputType = TextInputType.text,
-  }) {
+  Widget _textField(String label, FormFieldValidator<String> validator,
+      FormFieldSetter<String> onSaved,
+      {int maxLines = 1, TextInputType inputType = TextInputType.text}) {
     return TextFormField(
       validator: validator,
       onSaved: onSaved,
@@ -207,33 +162,50 @@ class _AddBookScreenState extends State<AddBookScreen> {
       decoration: InputDecoration(
         labelText: label,
         filled: true,
-        fillColor: Colors.white,
+        fillColor: AppTheme.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: AppTheme.border),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: AppTheme.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.blue.shade400, width: 2),
+          borderSide: BorderSide(color: AppTheme.primary, width: 2),
         ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       ),
     );
   }
 
   Widget _categoryDropdown(List<Category> categories) {
     return DropdownButtonFormField<String>(
-      initialValue: selectedCategoryId,
+      value: selectedCategoryId,
       items: categories
-          .map((c) =>
-              DropdownMenuItem(value: c.id, child: Text(c.name)))
+          .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
           .toList(),
-      decoration: _dropdownDecoration(),
+      decoration: InputDecoration(
+        labelText: "Category",
+        filled: true,
+        fillColor: AppTheme.surface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppTheme.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppTheme.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppTheme.primary, width: 2),
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+      ),
       onChanged: (value) => setState(() => selectedCategoryId = value),
       validator: (v) => v == null ? "Please choose a category" : null,
     );
@@ -250,6 +222,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
         Switch(
           value: isAvailable,
           onChanged: (v) => setState(() => isAvailable = v),
+          activeColor: AppTheme.primary,
         ),
       ],
     );
@@ -267,32 +240,6 @@ class _AddBookScreenState extends State<AddBookScreen> {
     );
   }
 
-  InputDecoration _dropdownDecoration() {
-    return InputDecoration(
-      filled: true,
-      fillColor: Colors.white,
-      labelText: "Category",
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide.none,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: Colors.grey.shade300),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: Colors.blue.shade400, width: 2),
-      ),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-    );
-  }
-
-  // --------------------------
-  // MARK: FORM VALIDATION & SUBMIT
-  // --------------------------
-
   FormFieldValidator<String> _required(String message) {
     return (v) => (v == null || v.trim().isEmpty) ? message : null;
   }
@@ -304,9 +251,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
       _formKey.currentState!.save();
 
       final finalImage =
-          (imageUrl == null || imageUrl!.isEmpty)
-              ? "assets/images/book-blue.jpg"
-              : imageUrl!;
+          (imageUrl == null || imageUrl!.isEmpty) ? "assets/images/book-blue.jpg" : imageUrl!;
 
       controller.addBook(
         Book(

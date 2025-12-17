@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:library_app/views/admin/dashboard.dart';
 import 'package:library_app/views/auth/sign_up_screen.dart';
 import 'package:library_app/views/home/home_screen.dart';
+import '../../../theme.dart';
 import '../../../constants.dart';
 
 class SignInScreen extends StatelessWidget {
@@ -14,49 +15,61 @@ class SignInScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Sign In")),
-      body: const SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                SizedBox(height: 16),
-                Text(
-                  "Welcome Back",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(
+        title: const Text("Sign In"),
+        backgroundColor: AppTheme.primary,
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 32),
+              const Text(
+                "Welcome Back",
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
                 ),
-                Text(
-                  "Sign in with your email and password",
-                  textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "Sign in with your email and password to continue",
+                style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 16,
                 ),
-                SizedBox(height: 16),
-                _SignInForm(),
-                SizedBox(height: 24),
-              ],
-            ),
+              ),
+              const SizedBox(height: 32),
+              const _SignInForm(),
+            ],
           ),
         ),
       ),
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: TextButton(
-          onPressed: () {},
-          child: Builder(
-            builder: (context) => TextButton(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text("Don’t have an account? ",
+                style: TextStyle(color: AppTheme.textSecondary)),
+            TextButton(
               onPressed: () {
                 Navigator.pushNamed(context, SignUpScreen.routeName);
               },
               child: const Text(
-                "Don’t have an account? Sign Up",
-                style: TextStyle(fontSize: 14),
+                "Sign Up",
+                style: TextStyle(
+                    color: AppTheme.primary, fontWeight: FontWeight.w600),
               ),
-            ),
-          ),
+            )
+          ],
         ),
       ),
     );
@@ -78,22 +91,19 @@ class _SignInFormState extends State<_SignInForm> {
 
   Future<void> login() async {
     setState(() => isLoading = true);
-
     try {
       UserCredential cred = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email!, password: password!);
 
-      // Get role from Firestore
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(cred.user!.uid)
           .get();
 
-      final role = userDoc.data()?['role'] ?? 'user'; // default role = user
+      final role = userDoc.data()?['role'] ?? 'user';
 
       if (!mounted) return;
 
-      // Navigate based on role
       if (role == 'admin') {
         Navigator.pushNamedAndRemoveUntil(
             context, DashboardScreen.routeName, (route) => false);
@@ -124,11 +134,17 @@ class _SignInFormState extends State<_SignInForm> {
               if (!emailValidatorRegExp.hasMatch(value)) return "Invalid email";
               return null;
             },
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: "Email",
               hintText: "Enter your email",
               floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: Icon(Icons.email, size: 20),
+              prefixIcon: const Icon(Icons.email),
+              filled: true,
+              fillColor: AppTheme.surface,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: AppTheme.border),
+              ),
             ),
           ),
           const SizedBox(height: 20),
@@ -141,27 +157,48 @@ class _SignInFormState extends State<_SignInForm> {
               if (value == null || value.isEmpty) return "Password required";
               return null;
             },
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: "Password",
               hintText: "Enter your password",
               floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: Icon(Icons.lock, size: 20),
+              prefixIcon: const Icon(Icons.lock),
+              filled: true,
+              fillColor: AppTheme.surface,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: AppTheme.border),
+              ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
 
-          ElevatedButton(
-            onPressed: isLoading
-                ? null
-                : () {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-                      login();
-                    }
-                  },
-            child: isLoading
-                ? const CircularProgressIndicator()
-                : const Text("Continue"),
+          // Sign In Button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: isLoading
+                  ? null
+                  : () {
+                      if (_formKey.currentState!.validate()) {
+                        _formKey.currentState!.save();
+                        login();
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text(
+                      "Sign In",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+            ),
           ),
         ],
       ),

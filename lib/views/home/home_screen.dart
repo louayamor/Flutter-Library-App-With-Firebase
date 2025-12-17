@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../controllers/book_controller.dart';
 import '../../controllers/category_controller.dart';
 import '../../controllers/auth_controller.dart';
@@ -8,7 +9,7 @@ import '../auth/sign_in_screen.dart';
 import '../book/book_details.dart';
 
 class HomeScreen extends StatefulWidget {
-  static String routeName = "/home";
+  static const String routeName = "/home";
 
   const HomeScreen({super.key});
 
@@ -17,10 +18,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final TextEditingController searchController = TextEditingController();
-  String searchQuery = "";
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
 
-  final Map<String, String> categoryImages = const {
+  final Map<String, String> _categoryImages = const {
     "Fiction": "assets/images/fiction.jpg",
     "Science": "assets/images/science.jpg",
     "History": "assets/images/history.jpg",
@@ -36,248 +37,235 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bookController = Provider.of<BookController>(context);
-    final categoryController = Provider.of<CategoryController>(context);
+    final bookController = context.watch<BookController>();
+    final categoryController = context.watch<CategoryController>();
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Library App'),
-        centerTitle: true,
-        elevation: 2,
-        backgroundColor: Colors.blue.shade600,
+        title: const Text("Library"),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await AuthController().logout();
-              if (!context.mounted) return;
-              Navigator.pushNamedAndRemoveUntil(
-                  context, SignInScreen.routeName, (route) => false);
-            },
+            onPressed: _logout,
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.blue.shade50, Colors.blue.shade100],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSearchSection(theme),
+              const SizedBox(height: 32),
+
+              _buildSectionTitle("Books"),
+              const SizedBox(height: 12),
+              _buildBooksList(bookController),
+              const SizedBox(height: 32),
+
+              _buildSectionTitle("Categories"),
+              const SizedBox(height: 12),
+              _buildCategoriesGrid(categoryController),
+            ],
           ),
         ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top Container with search
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.blue.shade600, Colors.blue.shade400],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Find your next favorite book",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: searchController,
-                        decoration: InputDecoration(
-                          hintText: "Search books...",
-                          fillColor: Colors.white,
-                          filled: true,
-                          prefixIcon: const Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        onChanged: (value) {
-                          setState(() => searchQuery = value);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
+      ),
+    );
+  }
 
-                // Books Section
-                const Text(
-                  "Books",
-                  style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 300,
-                  child: StreamBuilder<List<Book>>(
-                    stream: bookController.allBooks,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(child: Text("No books found."));
-                      }
+  // ================= UI SECTIONS =================
 
-                      final filteredBooks = snapshot.data!
-                          .where((book) => book.title
-                              .toLowerCase()
-                              .contains(searchQuery.toLowerCase()))
-                          .toList();
-
-                      if (filteredBooks.isEmpty) {
-                        return const Center(child: Text("No matching books."));
-                      }
-
-                      return ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: filteredBooks.length,
-                        itemBuilder: (context, index) {
-                          final book = filteredBooks[index];
-                          return GestureDetector(
-                            onTap: () => Navigator.pushNamed(
-                              context,
-                              BookDetailsScreen.routeName,
-                              arguments: book.id,
-                            ),
-                            child: Card(
-                              elevation: 3,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16)),
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 8),
-                              child: Container(
-                                width: 160,
-                                padding: const EdgeInsets.all(8),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: book.image != null
-                                            ? Image.network(
-                                                book.image!,
-                                                width: double.infinity,
-                                                fit: BoxFit.cover,
-                                                errorBuilder:
-                                                    (context, error, stackTrace) =>
-                                                        Container(
-                                                            color: Colors
-                                                                .grey.shade300),
-                                              )
-                                            : Container(
-                                                color: Colors.grey.shade300,
-                                              ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      book.title,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Text(
-                                      book.author,
-                                      style: const TextStyle(
-                                          fontSize: 12, color: Colors.grey),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Categories Section
-                const Text(
-                  "Categories",
-                  style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87),
-                ),
-                const SizedBox(height: 12),
-                categoryController.isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 3 / 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                        ),
-                        itemCount: categoryController.categories.length,
-                        itemBuilder: (context, index) {
-                          final category =
-                              categoryController.categories[index];
-                          final imagePath = categoryImages[category.name] ??
-                              "assets/images/fiction.jpg";
-                          return Card(
-                            elevation: 3,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Expanded(
-                                  child: ClipRRect(
-                                    borderRadius: const BorderRadius.vertical(
-                                        top: Radius.circular(16)),
-                                    child: Image.asset(
-                                      imagePath,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) =>
-                                          Container(color: Colors.grey.shade300),
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    category.name,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-              ],
+  Widget _buildSearchSection(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.primary,
+            theme.colorScheme.primary.withOpacity(0.85),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Find your next favorite book",
+            style: theme.textTheme.headlineMedium?.copyWith(
+              color: Colors.white,
             ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _searchController,
+            onChanged: (value) => setState(() => _searchQuery = value),
+            decoration: const InputDecoration(
+              hintText: "Search books...",
+              prefixIcon: Icon(Icons.search),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBooksList(BookController controller) {
+    return SizedBox(
+      height: 300,
+      child: StreamBuilder<List<Book>>(
+        stream: controller.allBooks,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final books = snapshot.data ?? [];
+          final filtered = books
+              .where((b) =>
+                  b.title.toLowerCase().contains(_searchQuery.toLowerCase()))
+              .toList();
+
+          if (filtered.isEmpty) {
+            return const Center(child: Text("No books found"));
+          }
+
+          return ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: filtered.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final book = filtered[index];
+              return _BookCard(book: book);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildCategoriesGrid(CategoryController controller) {
+    if (controller.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: controller.categories.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 3 / 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemBuilder: (context, index) {
+        final category = controller.categories[index];
+        final image =
+            _categoryImages[category.name] ?? "assets/images/fiction.jpg";
+
+        return Card(
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            children: [
+              Expanded(
+                child: Image.asset(
+                  image,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Text(
+                  category.name,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: Theme.of(context).textTheme.headlineSmall,
+    );
+  }
+
+  // ================= ACTIONS =================
+
+  Future<void> _logout() async {
+    await AuthController().logout();
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      SignInScreen.routeName,
+      (_) => false,
+    );
+  }
+}
+
+// ================= BOOK CARD =================
+
+class _BookCard extends StatelessWidget {
+  final Book book;
+
+  const _BookCard({required this.book});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(
+        context,
+        BookDetailsScreen.routeName,
+        arguments: book.id,
+      ),
+      child: SizedBox(
+        width: 160,
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: book.image != null
+                    ? Image.network(
+                        book.image!,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            Container(color: Colors.grey.shade300),
+                      )
+                    : Container(color: Colors.grey.shade300),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      book.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      book.author,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -2,8 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:library_app/views/home/home_screen.dart';
+import '../../theme.dart';
 import '../../constants.dart';
-import '../../models/user.dart'; // import AppUser
+import '../../models/user.dart'; // AppUser
 
 class SignUpScreen extends StatelessWidget {
   static String routeName = "/sign_up";
@@ -13,11 +14,18 @@ class SignUpScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Sign Up")),
-      body: const SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: SingleChildScrollView(child: _SignUpForm()),
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(
+        title: const Text("Sign Up"),
+        backgroundColor: AppTheme.primary,
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: const _SignUpForm(),
         ),
       ),
     );
@@ -52,12 +60,12 @@ class _SignUpFormState extends State<_SignUpForm> {
       final user = userCredential.user;
       if (user != null) {
         final appUser = AppUser(
-  id: user.uid,
-  email: email!,
-  name: name ?? "",
-  role: "user", 
-  borrowedBooks: [], 
-);
+          id: user.uid,
+          email: email!,
+          name: name ?? "",
+          role: "user",
+          borrowedBooks: [],
+        );
 
         await FirebaseFirestore.instance
             .collection('users')
@@ -82,14 +90,26 @@ class _SignUpFormState extends State<_SignUpForm> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 16),
-        const Text("Register Account", style: headingStyle),
+        const SizedBox(height: 32),
         const Text(
-          "Complete your details or continue\nwith social media",
-          textAlign: TextAlign.center,
+          "Create Account",
+          style: TextStyle(
+            color: AppTheme.textPrimary,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 8),
+        const Text(
+          "Fill in your details to continue",
+          style: TextStyle(
+            color: AppTheme.textSecondary,
+            fontSize: 16,
+          ),
+        ),
+        const SizedBox(height: 32),
 
         Form(
           key: _formKey,
@@ -98,13 +118,19 @@ class _SignUpFormState extends State<_SignUpForm> {
               // Name
               TextFormField(
                 onSaved: (v) => name = v?.trim(),
-                validator: (v) => v == null || v.isEmpty ? "Name required" : null,
-                decoration: const InputDecoration(
+                validator: (v) =>
+                    v == null || v.isEmpty ? "Name required" : null,
+                decoration: InputDecoration(
                   labelText: "Name",
                   hintText: "Enter your name",
                   floatingLabelBehavior: FloatingLabelBehavior.always,
-                  suffixIcon: Icon(Icons.person, size: 20),
-                  border: OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.person),
+                  filled: true,
+                  fillColor: AppTheme.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppTheme.border),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -118,12 +144,17 @@ class _SignUpFormState extends State<_SignUpForm> {
                   if (!emailValidatorRegExp.hasMatch(value)) return "Invalid email";
                   return null;
                 },
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: "Email",
                   hintText: "Enter your email",
                   floatingLabelBehavior: FloatingLabelBehavior.always,
-                  suffixIcon: Icon(Icons.email, size: 20),
-                  border: OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.email),
+                  filled: true,
+                  fillColor: AppTheme.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppTheme.border),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -137,12 +168,17 @@ class _SignUpFormState extends State<_SignUpForm> {
                   if (value.length < 8) return "Minimum 8 characters";
                   return null;
                 },
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: "Password",
                   hintText: "Enter your password",
                   floatingLabelBehavior: FloatingLabelBehavior.always,
-                  suffixIcon: Icon(Icons.lock, size: 20),
-                  border: OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock),
+                  filled: true,
+                  fillColor: AppTheme.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppTheme.border),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -155,44 +191,67 @@ class _SignUpFormState extends State<_SignUpForm> {
                   if (value == null || value.isEmpty) return "Please confirm password";
                   return null;
                 },
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: "Confirm Password",
                   hintText: "Re-enter your password",
                   floatingLabelBehavior: FloatingLabelBehavior.always,
-                  suffixIcon: Icon(Icons.lock, size: 20),
-                  border: OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock),
+                  filled: true,
+                  fillColor: AppTheme.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppTheme.border),
+                  ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
-              ElevatedButton(
-                onPressed: isLoading
-                    ? null
-                    : () {
-                        if (_formKey.currentState!.validate()) {
-                          _formKey.currentState!.save();
-                          if (password == confirmPassword) {
-                            registerUser();
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Passwords do not match")),
-                            );
+              // Sign Up Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          if (_formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+                            if (password == confirmPassword) {
+                              registerUser();
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text("Passwords do not match")),
+                              );
+                            }
                           }
-                        }
-                      },
-                child: isLoading
-                    ? const CircularProgressIndicator()
-                    : const Text("Continue"),
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          "Sign Up",
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                ),
               ),
             ],
           ),
         ),
 
-        const SizedBox(height: 20),
-        Text(
-          'By continuing you confirm that you agree\nwith our Terms and Conditions',
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodySmall,
+        const SizedBox(height: 24),
+        Center(
+          child: Text(
+            'By continuing, you agree to our Terms & Conditions',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
         ),
       ],
     );

@@ -1,51 +1,80 @@
 import 'package:flutter/material.dart';
 
-// ----------------- Colors -----------------
-const kPrimaryColor = Color(0xFF1E88E5); // Blue primary
-const kPrimaryLightColor = Color(0xFFBBDEFB); // Light blue
-const kPrimaryGradientColor = LinearGradient(
+/// ================= COLORS =================
+/// Warm, accessible orange palette
+const Color kPrimaryColor = Color(0xFFF97316); // Orange-500
+const Color kPrimaryDarkColor = Color(0xFFEA580C); // Orange-600
+const Color kPrimaryLightColor = Color(0xFFFFEDD5); // Orange-100
+
+const Color kSecondaryColor = Color(0xFF22C55E); // Success green
+const Color kBackgroundColor = Color(0xFFFFFBF5); // Soft warm background
+const Color kSurfaceColor = Colors.white;
+
+const Color kTextPrimaryColor = Color(0xFF1F2937); // Gray-800
+const Color kTextSecondaryColor = Color(0xFF6B7280); // Gray-500
+const Color kBorderColor = Color(0xFFF3E8D8);
+const Color kErrorColor = Color(0xFFEF4444);
+
+const LinearGradient kPrimaryGradient = LinearGradient(
   begin: Alignment.topLeft,
   end: Alignment.bottomRight,
-  colors: [Color(0xFF64B5F6), Color(0xFF1E88E5)],
+  colors: [kPrimaryLightColor, kPrimaryColor],
 );
-const kSecondaryColor = Color(0xFF90A4AE); // Gray-blue secondary
-const kTextColor = Colors.black;
 
-// ----------------- Animation -----------------
-const kAnimationDuration = Duration(milliseconds: 200);
-const defaultDuration = Duration(milliseconds: 250);
+/// ================= ANIMATION =================
+const Duration kAnimationDuration = Duration(milliseconds: 200);
+const Duration kDefaultDuration = Duration(milliseconds: 250);
 
-// ----------------- Text Style -----------------
-const headingStyle = TextStyle(
+/// ================= TEXT STYLES =================
+const TextStyle headingStyle = TextStyle(
   fontSize: 24,
   fontWeight: FontWeight.bold,
-  color: kTextColor,
-  height: 1.5,
+  color: kTextPrimaryColor,
+  height: 1.4,
 );
 
-// ----------------- Form Errors -----------------
-final RegExp emailValidatorRegExp =
-    RegExp(r"^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
-const String kEmailNullError = "Please Enter your email";
-const String kInvalidEmailError = "Please Enter Valid Email";
-const String kPassNullError = "Please Enter your password";
-const String kShortPassError = "Password is too short";
-const String kMatchPassError = "Passwords don't match";
-const String kNamelNullError = "Please Enter your name";
-const String kPhoneNumberNullError = "Please Enter your phone number";
-const String kAddressNullError = "Please Enter your address";
+const TextStyle subtitleStyle = TextStyle(
+  fontSize: 16,
+  color: kTextSecondaryColor,
+);
 
-// ----------------- Input Decoration -----------------
-final otpInputDecoration = InputDecoration(
+/// ================= FORM VALIDATION =================
+final RegExp emailValidatorRegExp =
+    RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+
+const String kEmailNullError = "Please enter your email";
+const String kInvalidEmailError = "Please enter a valid email";
+const String kPassNullError = "Please enter your password";
+const String kShortPassError = "Password is too short";
+const String kMatchPassError = "Passwords do not match";
+const String kNameNullError = "Please enter your name";
+const String kPhoneNumberNullError = "Please enter your phone number";
+const String kAddressNullError = "Please enter your address";
+
+/// ================= INPUT DECORATION =================
+final InputDecoration otpInputDecoration = InputDecoration(
+  filled: true,
+  fillColor: kSurfaceColor,
   contentPadding: const EdgeInsets.symmetric(vertical: 16),
   border: outlineInputBorder(),
-  focusedBorder: outlineInputBorder(),
   enabledBorder: outlineInputBorder(),
+  focusedBorder: outlineInputBorder(focused: true),
+  errorBorder: outlineInputBorder(error: true),
 );
 
-OutlineInputBorder outlineInputBorder() {
+OutlineInputBorder outlineInputBorder({
+  bool focused = false,
+  bool error = false,
+}) {
   return OutlineInputBorder(
-    borderRadius: BorderRadius.circular(16),
-    borderSide: const BorderSide(color: kPrimaryColor),
+    borderRadius: BorderRadius.circular(14),
+    borderSide: BorderSide(
+      color: error
+          ? kErrorColor
+          : focused
+              ? kPrimaryColor
+              : kBorderColor,
+      width: focused ? 2 : 1,
+    ),
   );
 }
